@@ -9,6 +9,8 @@ public class UnitLeader : MonoBehaviour
 	private float t = 0;
 	public string unitName;
 	public UIHandler uiReceive;
+	public Camera cam;
+	public GameObject goal;
 
 	void Start()
 	{
@@ -17,9 +19,20 @@ public class UnitLeader : MonoBehaviour
 
 	void Update()
 	{
-		//set y axis height,
+		LayerMask mask = -1;
+		RaycastHit hit = new RaycastHit();
+		if (Physics.Raycast(cam.ScreenPointToRay(new Vector3(Input.mousePosition.x, Input.mousePosition.y, cam.nearClipPlane)), out hit, 100, mask))
+		{
+			goal.transform.position = hit.point;
+		}
+		else
+		{
+			goal.transform.position = new Vector3(50, -10, 50);
+		}
 
-		transform.position = new Vector3(transform.position.x, Mathf.PerlinNoise(transform.position.x * .075f + 1, transform.position.z * .075f + 1) * 5 + .25f, transform.position.z);
+		//set y axis height
+
+		transform.position = new Vector3(transform.position.x, .35f, transform.position.z);
 
 		//set head position
 

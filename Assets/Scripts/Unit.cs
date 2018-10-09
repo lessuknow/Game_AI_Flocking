@@ -19,6 +19,7 @@ public class Unit : MonoBehaviour
 
 	void Start ()
 	{
+		Physics.IgnoreLayerCollision(9, 0);
 		/*Transform[] pathTemp = pathGoal.GetComponentsInChildren<Transform>();
 		pathGoals = new ArrayList();
 		for (int i = 0; i < pathTemp.Length; i++)
@@ -35,7 +36,7 @@ public class Unit : MonoBehaviour
 	
 	void Update ()
 	{
-		transform.position = new Vector3(transform.position.x, Mathf.PerlinNoise(transform.position.x * .075f + 1, transform.position.z * .075f + 1) * 5 + .25f, transform.position.z);
+		transform.position = new Vector3(transform.position.x, 0 + .35f, transform.position.z);
 
 		//displayInfo();
 
