@@ -27,10 +27,6 @@ public class UnitLeader : MonoBehaviour
 		{
 			goal.transform.position = hit.point;
 		}
-		else
-		{
-			goal.transform.position = new Vector3(50, -10, 50);
-		}
 
 		if (Vector3.Distance(goal.transform.position, transform.position) > 1)
 		{
