@@ -11,6 +11,8 @@ public class UnitLeader : MonoBehaviour
 	public UIHandler uiReceive;
 	public Camera cam;
 	public GameObject goal;
+	public Vector3 velocity;
+	public float acceleration;
 
 	void Start()
 	{
@@ -19,16 +21,25 @@ public class UnitLeader : MonoBehaviour
 
 	void Update()
 	{
-		LayerMask mask = -1;
+		LayerMask mask = 1 << 9;
 		RaycastHit hit = new RaycastHit();
-		if (Physics.Raycast(cam.ScreenPointToRay(new Vector3(Input.mousePosition.x, Input.mousePosition.y, cam.nearClipPlane)), out hit, 100, mask))
+		if (Physics.Raycast(cam.ScreenPointToRay(new Vector3(Input.mousePosition.x, Input.mousePosition.y, cam.nearClipPlane)), out hit, 200, mask))
 		{
 			goal.transform.position = hit.point;
 		}
-		else
+
+		if (Vector3.Distance(goal.transform.position, transform.position) > 1)
 		{
-			goal.transform.position = new Vector3(50, -10, 50);
+			velocity += acceleration * (goal.transform.position - transform.position).normalized * Time.deltaTime;
+			if (Vector3.Distance(goal.transform.position, transform.position) - 1 > moveSpeed)
+				velocity = Vector3.ClampMagnitude(velocity, moveSpeed);
+			else
+				velocity = Vector3.ClampMagnitude(velocity, Mathf.Lerp(velocity.magnitude, Vector3.Distance(goal.transform.position, transform.position) - 1, .1f));
 		}
+		else
+			velocity = Vector3.ClampMagnitude(velocity, Mathf.Lerp(velocity.magnitude, 0, .05f));
+
+		transform.position += velocity * Time.deltaTime;
 
 		//set y axis height
 
@@ -36,11 +47,8 @@ public class UnitLeader : MonoBehaviour
 
 		//set head position
 
+		head.transform.rotation = Quaternion.Slerp(head.transform.rotation, Quaternion.LookRotation(goal.transform.position - transform.position), .1f);
+
 		head.transform.position = transform.position + new Vector3(0, .3f, 0);
-	}
-
-	void displayInfo()
-	{
-
 	}
 }
