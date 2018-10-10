@@ -78,10 +78,11 @@ public class UnitPath : MonoBehaviour
 
 		Quaternion goalRotation = Quaternion.LookRotation(((GameObject)pathGoals[pathIndex]).transform.position - transform.position);
 		float rr = rayResult();
-		Quaternion avoidRotation = transform.rotation * Quaternion.AngleAxis(rr * 5, Vector3.up);
+		Quaternion avoidRotation = transform.rotation * Quaternion.AngleAxis(rr * 4, Vector3.up);
 
 		transform.rotation = Quaternion.Slerp(transform.rotation, goalRotation, goalRotatePower * Time.deltaTime);
-		transform.rotation = Quaternion.Slerp(transform.rotation, avoidRotation, avoidRotatePower * Time.deltaTime);
+		if (rr != 0)
+			transform.rotation = Quaternion.Slerp(transform.rotation, avoidRotation, avoidRotatePower * Time.deltaTime);
 	}
 
 	float rayResult()	//returns negative for turn power left, positive for turn power right, zero for no change of course
@@ -113,6 +114,11 @@ public class UnitPath : MonoBehaviour
 		if (!a && !b && !c && !d)
 			return 0;
 
+		if (a && b && c && d)
+		{
+			return Vector3.SignedAngle(transform.forward, ((GameObject)pathGoals[pathIndex]).transform.position - transform.position, transform.up) / 10;
+		}
+
 		float distanceA = Vector3.Distance(hitA.point, rayA.origin);
 		float distanceB = Vector3.Distance(hitB.point, rayB.origin);
 		float distanceC = Vector3.Distance(hitC.point, rayC.origin);
@@ -121,26 +127,26 @@ public class UnitPath : MonoBehaviour
 		if (c && d)
 		{
 			if (distanceC < distanceD)
-				return rayDistance / distanceC;
+				return Mathf.Clamp(rayDistance / distanceC, 0, 5);
 			else
-				return rayDistance / -distanceD;
+				return Mathf.Clamp(rayDistance / -distanceD, -5, 0);
 		}
 		if(c)
-			return rayDistance / distanceC;
+			return Mathf.Clamp(rayDistance / distanceC, 0, 5);
 		if (d)
-			return rayDistance / -distanceD;
+			return Mathf.Clamp(rayDistance / -distanceD, -5, 0);
 
 		if (a && b)
 		{
 			if (distanceA < distanceB)
-				return rayDistance / distanceA;
+				return Mathf.Clamp(rayDistance / distanceA, 0, 5);
 			else
-				return rayDistance / -distanceB;
+				return Mathf.Clamp(rayDistance / -distanceB, -5, 0);
 		}
 		if (a)
-			return rayDistance / distanceA;
+			return Mathf.Clamp(rayDistance / distanceA, 0, 5);
 		if (b)
-			return rayDistance / -distanceB;
+			return Mathf.Clamp(rayDistance / -distanceB, -5, 0);
 
 		return 0;
 	}
