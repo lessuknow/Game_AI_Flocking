@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Temp_Flock_Head : MonoBehaviour {
-
-    public Vector3 velocity;
+public class Temp_Flock_Head : Movable{
+    
 
 	// Use this for initialization
 	void Start () {

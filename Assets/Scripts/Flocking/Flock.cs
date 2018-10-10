@@ -2,89 +2,135 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Flock : MonoBehaviour
+public class Flock : Movable
 {
-    public GameObject running_from;
-    public Vector3 accel = new Vector3(0f, 0f, 0f),
-        velocity = new Vector3(0f, 0f, 0f),
-        target_velocity = new Vector3(0f, 0f, 0f);
+    public List<GameObject> friends;
+    public Vector3 seperation_accel = new Vector3(0f, 0f, 0f),
+        cohesion_accel = new Vector3(0f, 0f, 0f),
+        seperation_velocity = new Vector3(0f, 0f, 0f),
+        cohesion_velocity = new Vector3(0f, 0f, 0f),
+        move_velocity = new Vector3();
     
     //max_prediction must be nonzero
     public float max_velocity = 10f, max_accel = 5f;
     public Vector3 target_position;
     public float current_velocity;
-    public float strength, threshhold = 4.25f;
+    public float strength, threshhold = 4.25f, target_radius = 0.25f, slow_radius = 0.75f, time_to_target = 2.5f;
+    private Vector3 flock_center, flock_velocity, seperation_velocity_tmp = Vector3.zero;
 
     private void Update()
     {
-        Evade();
-        Align();
-        PostProcessing();
-
-    }
-    
-    //Own algorithm for rotation; the book algorithm is strange.
-    private void Align()
-    {
-        Vector3 dir = running_from.transform.position - transform.position;
-        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-        transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+        GetFlockCenter();
+        GetFlockVelocity();
+        Seperation();
+        Cohesion();
+        Move();
     }
 
-
-    private void Evade()
+    private void GetFlockCenter()
     {
-        Vector3 direction = -running_from.transform.position + transform.position;
+        flock_center = Vector3.zero;
+        for(int i=0;i<friends.Count;i++)
+        {
+            flock_center += friends[i].transform.position;
+        }
+        if(flock_center != Vector3.zero)
+            flock_center /= friends.Count;
+    }
+
+    private void GetFlockVelocity()
+    {
+        flock_velocity = Vector3.zero;
+        for (int i = 0; i < friends.Count; i++)
+        {
+            flock_velocity += friends[i].GetComponent<Movable>().velocity;
+        }
+        if (flock_velocity != Vector3.zero)
+            flock_velocity /= friends.Count;
+    }
+
+    private void Seperation()
+    {
+        seperation_velocity_tmp = Vector3.zero;
+        for (int i=0;i < friends.Count; i++)
+        {
+            Seperation(i);
+        }
+        seperation_velocity = seperation_velocity_tmp;
+        if(seperation_velocity!=Vector3.zero)
+            seperation_velocity /= friends.Count;
+        
+    }
+
+    private void Seperation(int pos)
+    {
+        Vector3 direction = -friends[pos].transform.position + transform.position;
         float distance = direction.magnitude;
-        float dist_clamp = Mathf.Clamp(distance, 0, threshhold);
+       // distance = Mathf.Clamp(distance, 0, threshhold);
+        strength = max_velocity * (threshhold - distance) / threshhold;
+        target_position = friends[pos].transform.position;
+     
+        //Increase the velocity based on acceleration.
+        seperation_velocity_tmp += strength * direction;
 
-        strength = max_velocity * (threshhold - dist_clamp) / threshhold;
-        //print(strength);
-        float cur_speed = velocity.magnitude;
+        
 
-        target_position = running_from.transform.position;
-
-
-        Seek();
     }
 
     //Move towards the target.
-    private void Seek()
-    {
-        //Move
-        transform.position = transform.position -
-            velocity * Time.deltaTime +
-            accel * (Time.deltaTime) * (Time.deltaTime) / 2;
-        
-        //Increase the velocity based on acceleration.
-        velocity = velocity + accel * Time.deltaTime;
-        
-        //Increase acceleration based on the distance between this and the target.
-        accel = target_position - transform.position;
-        //velocity *= strength;
-    }
-
-    //Handles processing everything after calling the functions, for ex. limiting the velocity and stuff.
-    private void PostProcessing()
+    private void Move()
     {
 
-        print(velocity);
-        velocity *= strength;
+        //velocity = seperation_velocity + running_from.GetComponent<Flock>().velocity + cohesion_velocity;
+        //end_velocity /= 3;
+
+        velocity = seperation_velocity + cohesion_velocity + flock_velocity;
+        //velocity = cohesion_velocity;// + flock_velocity;
+        velocity /= 3;
+
+        //Vector3 end_velocity = cohesion_velocity;
         //Cap velocity and acceleration.
         if (velocity.magnitude > max_velocity)
         {
             velocity = velocity.normalized;
             velocity *= max_velocity;
         }
-        if (accel.magnitude > max_accel)
-        {
-            accel = accel.normalized;
-            accel *= max_accel;
-        }
 
-        //Print the velocity via public variable.
+        print(transform.name+" "+ seperation_velocity + " " + cohesion_velocity + " " + flock_velocity+" "+velocity);
+         
+        //Move
+        transform.position = transform.position +
+            velocity * Time.deltaTime;
+
+        move_velocity = velocity;
         current_velocity = velocity.magnitude;
-
     }
 
+    //Move towards the target.
+    private void Cohesion()
+    {
+        if(friends.Count == 0)
+        {
+            cohesion_velocity = Vector3.zero;
+            return;
+        }
+        Vector3 direction = -flock_center + transform.position;
+        float target_speed;
+        float distance = direction.magnitude;
+        if (distance < target_radius)
+            target_speed = 0;
+
+        else if (distance > slow_radius)
+            target_speed = max_velocity;
+
+        else
+            target_speed = max_velocity * distance / slow_radius;
+        
+        cohesion_velocity = direction;
+        cohesion_velocity = cohesion_velocity.normalized;
+        cohesion_velocity *= -target_speed;
+        
+    }
+
+    
 }
