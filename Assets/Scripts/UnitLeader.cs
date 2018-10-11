@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class UnitLeader : MonoBehaviour
+public class UnitLeader : Movable
 {
 	public GameObject head;
 	public float moveSpeed = 1;
@@ -11,7 +11,7 @@ public class UnitLeader : MonoBehaviour
 	public UIHandler uiReceive;
 	public Camera cam;
 	public GameObject goal;
-	public Vector3 velocity;
+	//public Vector3 velocity;
 	public float acceleration;
 
 	void Start()

@@ -5,21 +5,25 @@ using UnityEngine;
 public class Flock : Movable
 {
     public List<GameObject> friends;
-    public Vector3 seperation_accel = new Vector3(0f, 0f, 0f),
-        cohesion_accel = new Vector3(0f, 0f, 0f),
-        seperation_velocity = new Vector3(0f, 0f, 0f),
-        cohesion_velocity = new Vector3(0f, 0f, 0f),
-        move_velocity = new Vector3();
+    //public GameObject head;
+    private Vector3 seperation_velocity = new Vector3(0f, 0f, 0f),
+        cohesion_velocity = new Vector3(0f, 0f, 0f);
     
     //max_prediction must be nonzero
-    public float max_velocity = 10f, max_accel = 5f;
+    public float max_velocity = 10f;
     public Vector3 target_position;
-    public float current_velocity;
-    public float strength, threshhold = 4.25f, target_radius = 0.25f, slow_radius = 0.75f, time_to_target = 2.5f;
+    public float threshhold = 4.25f, pref_magnitude_btn_boids = 0.25f;
     private Vector3 flock_center, flock_velocity, seperation_velocity_tmp = Vector3.zero;
+    private float strength;
+
+    private void Start()
+    {
+        //friends.Add(head);
+    }
 
     private void Update()
     {
+       // transform.position = new Vector3(transform.position.x,0.35f,transform.position.z);
         GetFlockCenter();
         GetFlockVelocity();
         Seperation();
@@ -62,16 +66,19 @@ public class Flock : Movable
         
     }
 
-    private void Seperation(int pos)
+    private void Seperation(int pos)    
     {
         Vector3 direction = -friends[pos].transform.position + transform.position;
         float distance = direction.magnitude;
-       // distance = Mathf.Clamp(distance, 0, threshhold);
-        strength = max_velocity * (threshhold - distance) / threshhold;
-        target_position = friends[pos].transform.position;
+        // distance = Mathf.Clamp(distance, 0, threshhold);
+        //strength = max_velocity * (threshhold - distance) / threshhold;
+
+        strength = Mathf.Min(threshhold / (distance * distance), max_velocity);
+        //print((direction).magnitude);
      
-        //Increase the velocity based on acceleration.
-        seperation_velocity_tmp += strength * direction;
+
+        if((direction).magnitude < pref_magnitude_btn_boids)
+            seperation_velocity_tmp += strength * direction;
 
         
 
@@ -84,7 +91,8 @@ public class Flock : Movable
         //velocity = seperation_velocity + running_from.GetComponent<Flock>().velocity + cohesion_velocity;
         //end_velocity /= 3;
 
-        velocity = seperation_velocity + cohesion_velocity + flock_velocity;
+        velocity = seperation_velocity + cohesion_velocity + flock_velocity; 
+       // velocity = 1f * seperation_velocity;// + 1.00f * flock_velocity;
         //velocity = cohesion_velocity;// + flock_velocity;
         velocity /= 3;
 
@@ -101,12 +109,10 @@ public class Flock : Movable
         //Move
         transform.position = transform.position +
             velocity * Time.deltaTime;
-
-        move_velocity = velocity;
-        current_velocity = velocity.magnitude;
+        
     }
 
-    //Move towards the target.
+    //Move towards the center of the local flock.
     private void Cohesion()
     {
         if(friends.Count == 0)
@@ -117,20 +123,21 @@ public class Flock : Movable
         Vector3 direction = -flock_center + transform.position;
         float target_speed;
         float distance = direction.magnitude;
-        if (distance < target_radius)
+        if (distance < pref_magnitude_btn_boids)
             target_speed = 0;
 
-        else if (distance > slow_radius)
-            target_speed = max_velocity;
-
         else
-            target_speed = max_velocity * distance / slow_radius;
-        
+            target_speed = max_velocity * (distance - pref_magnitude_btn_boids )/ pref_magnitude_btn_boids;
+
+        //print(target_speed);
+
         cohesion_velocity = direction;
         cohesion_velocity = cohesion_velocity.normalized;
         cohesion_velocity *= -target_speed;
-        
+
+
+
     }
 
-    
+
 }
