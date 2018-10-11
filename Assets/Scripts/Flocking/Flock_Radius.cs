@@ -4,7 +4,11 @@ using UnityEngine;
 
 public class Flock_Radius : MonoBehaviour {
 
-    public Flock flk;
+    public Boid boid;
+
+    private void Start()
+    {
+    }
 
     private void OnTriggerEnter(Collider other)
     {
@@ -12,14 +16,14 @@ public class Flock_Radius : MonoBehaviour {
         {
             // print(Vector3.Angle(transform.forward, transform.position - other.transform.position));
             if (other.GetComponent<Movable>() && other.gameObject.name != "Unit Body")
-                flk.friends.Add(other.gameObject);
+                boid.neighbors.Add(other.GetComponent<Movable>());
         }
     }
 
     private void OnTriggerExit(Collider other)
     {
         if (other.GetComponent<Movable>() && other.gameObject.name != "Unit Body")
-            if(flk.friends.Count > 1)
-                flk.friends.Remove(other.gameObject);
+            if(boid.neighbors.Count > 0)
+                boid.neighbors.Remove(other.GetComponent<Movable>());
     }
 }

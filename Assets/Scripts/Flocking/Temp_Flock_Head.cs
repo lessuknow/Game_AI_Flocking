@@ -12,6 +12,6 @@ public class Temp_Flock_Head : Movable{
 	
 	// Update is called once per frame
 	void Update () {
-        transform.position += velocity * Time.deltaTime;
+        //transform.position += velocity * Time.deltaTime;
 	}
 }

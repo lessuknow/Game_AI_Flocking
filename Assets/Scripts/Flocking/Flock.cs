@@ -2,19 +2,23 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Flock : Movable
+public class Flock : MonoBehaviour
 {
     public List<GameObject> friends;
-    //public GameObject head;
+    public GameObject head;
     private Vector3 seperation_velocity = new Vector3(0f, 0f, 0f),
         cohesion_velocity = new Vector3(0f, 0f, 0f);
     
     //max_prediction must be nonzero
-    public float max_velocity = 10f;
+    public float max_velocity = 10f, max_accel = 5f;
     public Vector3 target_position;
     public float threshhold = 4.25f, pref_magnitude_btn_boids = 0.25f;
     private Vector3 flock_center, flock_velocity, seperation_velocity_tmp = Vector3.zero;
+    private Vector3 accel;
+    public Vector3 velocity;
+    private Quaternion end_rotation;
     private float strength;
+    public Vector3 ddd;
 
     private void Start()
     {
@@ -47,7 +51,7 @@ public class Flock : Movable
         flock_velocity = Vector3.zero;
         for (int i = 0; i < friends.Count; i++)
         {
-            flock_velocity += friends[i].GetComponent<Movable>().velocity;
+         //   flock_velocity += friends[i].GetComponent<Movable>().velocity;
         }
         if (flock_velocity != Vector3.zero)
             flock_velocity /= friends.Count;
@@ -85,16 +89,11 @@ public class Flock : Movable
     }
 
     //Move towards the target.
-    private void Move()
+    protected void Move()
     {
+        velocity = ddd;
 
-        //velocity = seperation_velocity + running_from.GetComponent<Flock>().velocity + cohesion_velocity;
-        //end_velocity /= 3;
-
-        velocity = seperation_velocity + cohesion_velocity + flock_velocity; 
-       // velocity = 1f * seperation_velocity;// + 1.00f * flock_velocity;
-        //velocity = cohesion_velocity;// + flock_velocity;
-        velocity /= 3;
+        //velocity /= 2;
 
         //Vector3 end_velocity = cohesion_velocity;
         //Cap velocity and acceleration.
@@ -105,10 +104,16 @@ public class Flock : Movable
         }
 
         print(transform.name+" "+ seperation_velocity + " " + cohesion_velocity + " " + flock_velocity+" "+velocity);
-         
+
+        Quaternion end_rotation = Quaternion.LookRotation((seperation_velocity + cohesion_velocity + (flock_velocity + flock_center - transform.position)).normalized, 
+            transform.up);
+
+        transform.position = transform.position + transform.rotation.normalized * velocity * Time.deltaTime;
+
+        transform.rotation = Quaternion.Slerp(transform.rotation, end_rotation, 5 * Time.deltaTime);
         //Move
-        transform.position = transform.position +
-            velocity * Time.deltaTime;
+        //transform.position = transform.position +
+            //velocity * Time.deltaTime;
         
     }
 
