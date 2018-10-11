@@ -4,87 +4,145 @@ using UnityEngine;
 
 public class Flock : MonoBehaviour
 {
-    public GameObject running_from;
-    public Vector3 accel = new Vector3(0f, 0f, 0f),
-        velocity = new Vector3(0f, 0f, 0f),
-        target_velocity = new Vector3(0f, 0f, 0f);
+    public List<GameObject> friends;
+    public GameObject head;
+    private Vector3 seperation_velocity = new Vector3(0f, 0f, 0f),
+        cohesion_velocity = new Vector3(0f, 0f, 0f);
     
     //max_prediction must be nonzero
     public float max_velocity = 10f, max_accel = 5f;
     public Vector3 target_position;
-    public float current_velocity;
-    public float strength, threshhold = 4.25f;
+    public float threshhold = 4.25f, pref_magnitude_btn_boids = 0.25f;
+    private Vector3 flock_center, flock_velocity, seperation_velocity_tmp = Vector3.zero;
+    private Vector3 accel;
+    public Vector3 velocity;
+    private Quaternion end_rotation;
+    private float strength;
+    public Vector3 ddd;
+
+    private void Start()
+    {
+        //friends.Add(head);
+    }
 
     private void Update()
     {
-        Evade();
-        Align();
-        PostProcessing();
-
-    }
-    
-    //Own algorithm for rotation; the book algorithm is strange.
-    private void Align()
-    {
-        Vector3 dir = running_from.transform.position - transform.position;
-        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-        transform.rotation = Quaternion.AngleAxis(angle, Vector3.forward);
+       // transform.position = new Vector3(transform.position.x,0.35f,transform.position.z);
+        GetFlockCenter();
+        GetFlockVelocity();
+        Seperation();
+        Cohesion();
+        Move();
     }
 
-
-    private void Evade()
+    private void GetFlockCenter()
     {
-        Vector3 direction = -running_from.transform.position + transform.position;
+        flock_center = Vector3.zero;
+        for(int i=0;i<friends.Count;i++)
+        {
+            flock_center += friends[i].transform.position;
+        }
+        if(flock_center != Vector3.zero)
+            flock_center /= friends.Count;
+    }
+
+    private void GetFlockVelocity()
+    {
+        flock_velocity = Vector3.zero;
+        for (int i = 0; i < friends.Count; i++)
+        {
+         //   flock_velocity += friends[i].GetComponent<Movable>().velocity;
+        }
+        if (flock_velocity != Vector3.zero)
+            flock_velocity /= friends.Count;
+    }
+
+    private void Seperation()
+    {
+        seperation_velocity_tmp = Vector3.zero;
+        for (int i=0;i < friends.Count; i++)
+        {
+            Seperation(i);
+        }
+        seperation_velocity = seperation_velocity_tmp;
+        if(seperation_velocity!=Vector3.zero)
+            seperation_velocity /= friends.Count;
+        
+    }
+
+    private void Seperation(int pos)    
+    {
+        Vector3 direction = -friends[pos].transform.position + transform.position;
         float distance = direction.magnitude;
-        float dist_clamp = Mathf.Clamp(distance, 0, threshhold);
+        // distance = Mathf.Clamp(distance, 0, threshhold);
+        //strength = max_velocity * (threshhold - distance) / threshhold;
 
-        strength = max_velocity * (threshhold - dist_clamp) / threshhold;
-        //print(strength);
-        float cur_speed = velocity.magnitude;
+        strength = Mathf.Min(threshhold / (distance * distance), max_velocity);
+        //print((direction).magnitude);
+     
 
-        target_position = running_from.transform.position;
+        if((direction).magnitude < pref_magnitude_btn_boids)
+            seperation_velocity_tmp += strength * direction;
 
+        
 
-        Seek();
     }
 
     //Move towards the target.
-    private void Seek()
+    protected void Move()
     {
-        //Move
-        transform.position = transform.position -
-            velocity * Time.deltaTime +
-            accel * (Time.deltaTime) * (Time.deltaTime) / 2;
-        
-        //Increase the velocity based on acceleration.
-        velocity = velocity + accel * Time.deltaTime;
-        
-        //Increase acceleration based on the distance between this and the target.
-        accel = target_position - transform.position;
-        //velocity *= strength;
-    }
+        velocity = ddd;
 
-    //Handles processing everything after calling the functions, for ex. limiting the velocity and stuff.
-    private void PostProcessing()
-    {
+        //velocity /= 2;
 
-        print(velocity);
-        velocity *= strength;
+        //Vector3 end_velocity = cohesion_velocity;
         //Cap velocity and acceleration.
         if (velocity.magnitude > max_velocity)
         {
             velocity = velocity.normalized;
             velocity *= max_velocity;
         }
-        if (accel.magnitude > max_accel)
-        {
-            accel = accel.normalized;
-            accel *= max_accel;
-        }
 
-        //Print the velocity via public variable.
-        current_velocity = velocity.magnitude;
+        print(transform.name+" "+ seperation_velocity + " " + cohesion_velocity + " " + flock_velocity+" "+velocity);
+
+        Quaternion end_rotation = Quaternion.LookRotation((seperation_velocity + cohesion_velocity + (flock_velocity + flock_center - transform.position)).normalized, 
+            transform.up);
+
+        transform.position = transform.position + transform.rotation.normalized * velocity * Time.deltaTime;
+
+        transform.rotation = Quaternion.Slerp(transform.rotation, end_rotation, 5 * Time.deltaTime);
+        //Move
+        //transform.position = transform.position +
+            //velocity * Time.deltaTime;
+        
+    }
+
+    //Move towards the center of the local flock.
+    private void Cohesion()
+    {
+        if(friends.Count == 0)
+        {
+            cohesion_velocity = Vector3.zero;
+            return;
+        }
+        Vector3 direction = -flock_center + transform.position;
+        float target_speed;
+        float distance = direction.magnitude;
+        if (distance < pref_magnitude_btn_boids)
+            target_speed = 0;
+
+        else
+            target_speed = max_velocity * (distance - pref_magnitude_btn_boids )/ pref_magnitude_btn_boids;
+
+        //print(target_speed);
+
+        cohesion_velocity = direction;
+        cohesion_velocity = cohesion_velocity.normalized;
+        cohesion_velocity *= -target_speed;
+
+
 
     }
+
 
 }

@@ -10,8 +10,9 @@ public class UnitLeader : MonoBehaviour
 	public string unitName;
 	public UIHandler uiReceive;
 	public Camera cam;
+    public Vector3 velocity;
 	public GameObject goal;
-	public Vector3 velocity;
+	//public Vector3 velocity;
 	public float acceleration;
 
 	void Start()
