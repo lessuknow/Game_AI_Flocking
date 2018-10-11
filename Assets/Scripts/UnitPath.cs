@@ -82,7 +82,10 @@ public class UnitPath : MonoBehaviour
 
 		transform.rotation = Quaternion.Slerp(transform.rotation, goalRotation, goalRotatePower * Time.deltaTime);
 		if (rr != 0)
+		{
 			transform.rotation = Quaternion.Slerp(transform.rotation, avoidRotation, avoidRotatePower * Time.deltaTime);
+			transform.position += transform.right * rr * Time.deltaTime;
+		}
 	}
 
 	float rayResult()	//returns negative for turn power left, positive for turn power right, zero for no change of course
