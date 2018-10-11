@@ -7,7 +7,6 @@ public class UnitPath : MonoBehaviour
 	public GameObject pathGoal;
 	private ArrayList pathGoals;
 	private int pathIndex;
-	private int lookIndex;
 	public GameObject head;
 	public float moveSpeed = 1;
 	private Vector3 movement;
@@ -40,7 +39,6 @@ public class UnitPath : MonoBehaviour
 			}
 		}
 		pathIndex = 0;
-		lookIndex = 0;
 	}
 
 	void Update()
@@ -169,54 +167,5 @@ public class UnitPath : MonoBehaviour
 	{
 		radius.transform.position = pos;
 		radius.transform.localScale = new Vector3(rad, .05f, rad);
-	}
-
-	void chaseFleeSet()
-	{
-		/*this section has raycast lines in it
-		if (Vector3.Distance(fleeGoal.transform.position, transform.position) < 20 && Vector3.Distance(fleeGoal.transform.position, transform.position) > 16)
-		{
-			fleeDisplay.transform.position = transform.position + (fleeGoal.transform.position - transform.position).normalized * 16;
-		}
-		else
-		{
-			fleeDisplay.transform.position = Vector3.zero;
-		}
-		if (Vector3.Distance(chaseGoal.transform.position, transform.position) < 25 && Vector3.Distance(chaseGoal.transform.position, transform.position) > 20)
-		{
-			chaseDisplay.transform.position = transform.position + (chaseGoal.transform.position - transform.position).normalized * 20;
-		}
-		else
-		{
-			chaseDisplay.transform.position = Vector3.zero;
-		}
-		if (Vector3.Distance(chaseGoal.transform.position, transform.position) < 25)
-		{
-			LayerMask groundMask = 1 << 9;
-			Ray ray;
-			RaycastHit hit;
-			ray = new Ray(transform.position, (chaseGoal.transform.position - transform.position).normalized);
-			hit = new RaycastHit();
-			if (!Physics.Raycast(ray, out hit, Vector3.Distance(transform.position, chaseGoal.transform.position), groundMask))
-			{
-				seeLine.transform.position = (transform.position + chaseGoal.transform.position) / 2;
-				seeLine.transform.rotation = Quaternion.LookRotation((transform.position - chaseGoal.transform.position).normalized);
-				seeLine.transform.localScale = new Vector3(.1f, .1f, Vector3.Distance(transform.position, chaseGoal.transform.position));
-				blindLine.transform.position = Vector3.zero;
-			}
-			else
-			{
-				blindLine.transform.position = (transform.position + chaseGoal.transform.position) / 2;
-				blindLine.transform.rotation = Quaternion.LookRotation((transform.position - chaseGoal.transform.position).normalized);
-				blindLine.transform.localScale = new Vector3(.1f, .1f, Vector3.Distance(transform.position, chaseGoal.transform.position));
-				seeLine.transform.position = Vector3.zero;
-			}
-		}
-		else
-		{
-			blindLine.transform.position = Vector3.zero;
-			seeLine.transform.position = Vector3.zero;
-		}
-		*/
 	}
 }
