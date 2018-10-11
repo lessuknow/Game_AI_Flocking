@@ -12,8 +12,6 @@ public class UnitFlockFollow : MonoBehaviour
 	private Vector3 movement;
 	private float t = 0;
 	public GameObject radius;
-	public string unitName;
-	public UIHandler uiReceive;
 	public Vector3 velocity;
 	public float acceleration;
 	public float goalRotatePower = .05f;
@@ -22,6 +20,7 @@ public class UnitFlockFollow : MonoBehaviour
 	public bool collisionPredicting = true;
 	public float collisionDistance = .6f;
 	private float shortestTime = 100;
+	public GameObject point;
 
 	void Start()
 	{
@@ -54,8 +53,9 @@ public class UnitFlockFollow : MonoBehaviour
 
 		if (Vector3.Distance(((GameObject)pathGoals[pathIndex]).transform.position, transform.position) < .3f)
 		{
-			velocity = Vector3.Lerp(velocity, Vector3.zero, .1f);
-			transform.position += velocity * Time.deltaTime;
+			//velocity = Vector3.Lerp(velocity, Vector3.zero, .1f);
+			//transform.position += velocity * Time.deltaTime;
+			pathContinue();
 		}
 		else
 		{
@@ -85,6 +85,27 @@ public class UnitFlockFollow : MonoBehaviour
 			pathIndex++;
 	}
 
+	public void addToLocal(GameObject unit)
+	{	//change to add to local group to be run through
+		if (coneChecking)
+		{
+			if (inVision(unit))
+			{
+				//add to in vision list
+			}
+		}
+		float turn = 0;
+		if (collisionPredicting)
+		{
+			turn = predictCollision(unit);
+		}
+	}
+
+	public void removeFromLocal(GameObject unit)
+	{
+		//remove from list of local objects
+	}
+
 	bool inVision(GameObject unit)
 	{
 		if (Vector3.Angle((unit.transform.position - transform.position).normalized, transform.forward) < visionDegrees)
@@ -92,13 +113,14 @@ public class UnitFlockFollow : MonoBehaviour
 		return false;
 	}
 
-	float predictCollision(GameObject unit)		//this should work, but I'm not sure. collision prediction is weird
+	float predictCollision(GameObject unit)
 	{
 		Vector3 relativePos = unit.transform.position - transform.position;
 		Vector3 relativeVel = unit.GetComponent<UnitFlockFollow>().velocity - velocity;
 		float relativeSpeed = relativeVel.magnitude;
-		float timeToCollide = Vector3.Dot(relativePos, relativeVel) / (relativeSpeed * relativeSpeed);
+		float timeToCollide = -Vector3.Dot(relativePos, relativeVel) / (relativeSpeed * relativeSpeed);
 		float collision = Vector3.Distance(unit.transform.position + timeToCollide * unit.GetComponent<UnitFlockFollow>().velocity, transform.position + timeToCollide * velocity);
+		point.transform.position = transform.position - timeToCollide * velocity;
 
 		if (timeToCollide <= 0 || collision >= collisionDistance)
 			return 0;
@@ -112,26 +134,5 @@ public class UnitFlockFollow : MonoBehaviour
 	{
 		radius.transform.position = pos;
 		radius.transform.localScale = new Vector3(rad, .05f, rad);
-	}
-
-	void OnTriggerEnter(Collider other)
-	{
-		if ((tag == "A" && other.tag == "B") || (tag == "B" && other.tag == "A"))
-		{
-			if (coneChecking)
-			{
-				if (inVision(other.gameObject))
-				{
-					//add to in vision list
-				}
-			}
-			float turn = 0;
-			if (collisionPredicting)
-			{
-				turn = predictCollision(other.gameObject);
-			}
-
-			//from here use vision list and turn to alter steering and movement to prevent collision
-		}
 	}
 }
